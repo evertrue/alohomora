@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+
+require 'thor'
+require 'github_api'
+require 'trollop'
+
+class Alohomora < Thor
+  include Thor::Actions
+  package_name 'alohomora'
+
+  desc 'unseal', 'Unseal the vault'
+  def unseal
+    puts 'trying to unseal'
+  end
+
+  private
+
+  def github_unsealers
+    github.orgs.teams.list_members(team_id).map { |m| m['login'] }
+  end
+
+  def github_vault_unsealers_team_id
+    github.orgs.teams.list.find { |t| t['name'] == github_team_name }['id']
+  end
+
+  def github_team_name
+    opts[:github_team_name] || 'Vault Unsealers'
+  end
+
+  def github
+    @github ||= Github.new basic_auth: "#{github_user}:#{github_token}"
+  end
+
+  def github_user
+    opts[:github_user] || ENV['GITHUB_USER'] || ENV['USER']
+  end
+
+  def github_token
+    # TODO: Figure out how to get the token from 'Alohomora Token'
+    # field in 1Password
+  end
+end
+
+Alohomora.start
